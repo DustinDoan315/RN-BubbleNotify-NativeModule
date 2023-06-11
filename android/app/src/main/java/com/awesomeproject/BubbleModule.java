@@ -51,7 +51,6 @@ public class BubbleModule extends ReactContextBaseJavaModule {
     private WindowManager mWindowManager;
     private View mChatHeadView;
     private boolean isListen = false;
-    private String type = "store";
     private int count = 0;
     private Promise promise;
     boolean isShowNotify = false;
@@ -140,7 +139,7 @@ public class BubbleModule extends ReactContextBaseJavaModule {
         params.gravity = Gravity.TOP | Gravity.LEFT;
 
         params.x = 0;
-        params.y = (int) (deviceHeight / 2.5);
+        params.y = (int) (deviceHeight / 2);
 
         final ImageView chatHeadImage = mChatHeadView.findViewById(R.id.chat_head_profile_iv);
 
@@ -153,16 +152,6 @@ public class BubbleModule extends ReactContextBaseJavaModule {
 
                     private ImageView chatHeadProfileImageView;
                     private float initialAlpha = 1f;
-
-                    // private void decreaseOpacity() {
-                    // if (chatHeadProfileImageView != null) {
-                    // ObjectAnimator alphaAnimator =
-                    // ObjectAnimator.ofFloat(chatHeadProfileImageView, "alpha",
-                    // initialAlpha, 0.5f);
-                    // alphaAnimator.setDuration(500);
-                    // alphaAnimator.start();
-                    // }
-                    // }
 
                     @Override
                     public boolean onSingleTapUp(MotionEvent e) {
@@ -178,7 +167,7 @@ public class BubbleModule extends ReactContextBaseJavaModule {
                             ex.printStackTrace();
                         }
                         WritableMap eventData = Arguments.createMap();
-                        eventData.putString("myData", type);
+                        eventData.putString("myData", "data transfer");
                         getReactApplicationContext()
                                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                                 .emit("NOTIFY", eventData);
@@ -282,14 +271,14 @@ public class BubbleModule extends ReactContextBaseJavaModule {
             mWindowManager.addView(mChatHeadView, params);
         } else {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getReactApplicationContext().getPackageName()));
+            Uri.parse("package:" + getReactApplicationContext().getPackageName()));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getReactApplicationContext().startActivity(intent);
         }
     }
 
     @ReactMethod
-    public void onReceiveNotify(String notify, String typeMess) {
+    public void onReceiveNotify(String notify) {
         Log.e("Bubble Notify", notify);
         Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
@@ -315,7 +304,6 @@ public class BubbleModule extends ReactContextBaseJavaModule {
 
         if (textView != null) {
             Log.e("BubbleModule", notify);
-            type = typeMess;
             if (notify != null && !notify.equals("0")) {
                 textView.setVisibility(View.VISIBLE);
                 textView.setText(notify);
@@ -332,7 +320,7 @@ public class BubbleModule extends ReactContextBaseJavaModule {
                     public void run() {
                         textView.setVisibility(View.GONE);
                     }
-                }, 15000);
+                }, 5000);
             } else {
                 textView.setVisibility(View.GONE);
                 textCount.setVisibility(View.GONE);
@@ -345,24 +333,23 @@ public class BubbleModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void resetCounter() {
         count = 0;
-        onReceiveNotify("0", "0");
+        onReceiveNotify("0");
     }
 
     @ReactMethod
     public void getIsListen() {
         WritableMap eventData = Arguments.createMap();
         eventData.putString("isListen", Boolean.toString(isListen));
-        eventData.putString("typeMess", type);
+        eventData.putString("typeMess", "data transfer");
         getReactApplicationContext()
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit("LISTEN", eventData);
     }
 
     @ReactMethod
-    public void hideChatHead() {
+    public void hideNotifyHead() {
         if (mChatHeadView != null && mChatHeadView.getParent() != null) {
             updateBooleanVariable(false);
-            type = "store";
             count = 0;
             mWindowManager.removeView(mChatHeadView);
         }
